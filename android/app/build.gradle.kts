@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.medtime"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -27,7 +27,7 @@ android {
         applicationId = "com.example.medtime"
         
         minSdk = flutter.minSdkVersion  
-        targetSdk = 35  //  
+        targetSdk = 36  
         
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -42,4 +42,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
 }
