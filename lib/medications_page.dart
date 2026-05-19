@@ -23,7 +23,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
   final TextEditingController _manualNameController = TextEditingController();
   final TextEditingController _manualDosageController = TextEditingController();
   
-  // 📆 Takvim ve Saat Entegrasyonu Değişkenleri
   TimeOfDay? _selectedTime;
   String _selectedOgun = "Sabah"; 
 
@@ -47,7 +46,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
     super.dispose();
   }
 
-  // 🔔 Bildirim sistemini başlatan fonksiyon
   Future<void> _bildirimSisteminiBaslat() async {
     tz.initializeTimeZones();
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -57,7 +55,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
     await _notificationsPlugin.initialize(initializationSettings);
   }
 
-  //  Gerçek Zamanlı Alarm Motoru 
   Future<void> _herGunTekrarlayanIlacAlarmiKur({
     required int id,
     required String ilacAdi,
@@ -94,7 +91,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
     );
   }
 
-  //  Bildirim tetikleyici köprü
   Future<void> _ilacZamanAnaliziVeBildirimKur(String docId, String ilacAdi, int saat, int dakika, String ogun) async {
     int benzersizHashId = docId.hashCode;
 
@@ -108,7 +104,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
     debugPrint("🔔 $ilacAdi için $ogun ($saat:$dakika) bildirimi kuruldu.");
   }
 
-  // İlaç Silindiğinde Bildirim İptali
   Future<void> _ilacBildirimleriniTemizle(String docId) async {
     int benzersizHashId = docId.hashCode;
     await _notificationsPlugin.cancel(benzersizHashId + 1); 
@@ -129,7 +124,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
         .snapshots();
   }
 
-  // Veritabanına İlaç Ekleme Metodu
   Future<void> _addNewMedication({
     required String name, 
     required String dosage, 
@@ -164,7 +158,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
           .collection('notifications')
           .add({
         'title': '$name Zamanı 💊',
-        'body': '$zamanMetni vaktinde almanız gereken $dosage dozunda ilaç listelendi.',
+        'body': '$zamanMetni vaktinde almanız gereken $dosage dosage ilaç listelendi.',
         'ogun': ogun,
         'timestamp': Timestamp.fromDate(dinamikHedefZamani),
       });
@@ -189,7 +183,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
     }
   }
 
-  // İlaç Silme Fonksiyonu
   Future<void> _deleteMedication(String docId) async {
     try {
       await _ilacBildirimleriniTemizle(docId);
@@ -210,7 +203,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
         ),
       );
     } catch (e) {
-      print("İlaç silinemedi: $e");
+      debugPrint("İlaç silinemedi: $e");
     }
   }
 
@@ -312,7 +305,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("İlaç Tanımlanamadı"),
-        content: Text("Manuel eklemek ister misiniz?"),
+        content: const Text("Manuel eklemek ister misiniz?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -331,7 +324,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
     );
   }
 
-  //  Düzenlenmiş Bottom Sheet
   void _showManualAddBottomSheet() {
     _manualNameController.clear();
     _manualDosageController.clear();
@@ -554,7 +546,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
             child: StreamBuilder<QuerySnapshot>(
               stream: _getMedicationsStream(),
               builder: (context, snapshot) {
-                // Listede dinamik widget'lar (StreamBuilder) olduğu için ana listenin başından 'const' kaldırıldı
                 return ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
@@ -602,7 +593,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
                           padding: EdgeInsets.all(40.0),
                           child: Text(
                             "Henüz bir ilaç eklenmedi. Kutuyu taratın.", 
-                            style: TextStyle(color: Colors.black38, fontSize: 16, fontWeight: FontWeight.w500), // FontWeight.medium yerine FontWeight.w500 yapıldı
+                            style: TextStyle(color: Colors.black38, fontSize: 16, fontWeight: FontWeight.w500),
                           ),
                         ),
                       )
@@ -620,6 +611,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
                         }
 
                         return Container(
+                          key: ValueKey(docId), 
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(color: const Color(0xFFE9F5E9), borderRadius: BorderRadius.circular(20)),
                           child: ListTile(

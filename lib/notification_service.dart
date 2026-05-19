@@ -28,6 +28,17 @@ class NotificationService {
     );
 
     await _notificationsPlugin.initialize(initSettings);
+
+    // 📱 Android 13+ (API 33+) ve üstü için bildirim iznini tetikleme köprüsü
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+            
+    if (androidImplementation != null) {
+      await androidImplementation.requestNotificationsPermission();
+      // Tam zamanlı alarm yetkisini de güvene alalım
+      await androidImplementation.requestExactAlarmsPermission();
+    }
   }
 
   // 1. İLAÇ İÇİN TEKRARLAYAN BİLDİRİM AYARLAMA
@@ -53,14 +64,17 @@ class NotificationService {
       scheduledDate,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'medication_channel', 'İlaç Hatırlatıcıları',
-          channelDescription: 'İlaç saatleriniz için bildirimler',
+          'vital_ai_health_channel', // Kanka sayfa yapısıyla çakışmaması için kanal ID'si eşitlendi
+          'Akıllı Sağlık Asistanı Bildirimleri',
+          channelDescription: 'Öğün bazlı gerçek zamanlı ilaç hatırlatıcıları',
           importance: Importance.max,
           priority: Priority.high,
+          playSound: true,
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.exact, 
+      // Cihaz derin uykudayken bile alarm motorunun stabil çalışması sağlandı
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, 
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time, // Her gün aynı saatte tekrarlar
     );
@@ -95,12 +109,12 @@ class NotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.exact, 
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, 
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
-  // TEK BİR BİLDİRİMİ İPTAL ETME (Kullanıcı ilacı veya randevuyu sildiğinde çağrılır)
+  // TEK BİR BİLDİRİMİ İPTAL ETME
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
     debugPrint("🔔 [NotificationService] ID'si $id olan yerel alarm başarıyla iptal edildi.");
