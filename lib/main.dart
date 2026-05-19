@@ -9,7 +9,7 @@ import 'medications_page.dart';
 import 'appointments_page.dart';
 import 'notifications_page.dart';
 import 'notification_service.dart'; // BİLDİRİM İÇİN EKLEME 
-import 'package:medtime/profile_complete_screen.dart';
+import 'profile_complete_screen.dart';
 
 // void main kısmını async yapıp Firebase'i ve Bildirim Servisini uyandırıyoruz
 void main() async {
