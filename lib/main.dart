@@ -1,27 +1,25 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // BULUT İÇİN 1. EKLEME
-import 'firebase_options.dart'; //  BULUT İÇİN 2. EKLEME
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-// Önce oluşturduğun diğer sayfaları buraya tanıtıyoruz (import ediyoruz)
+// Sayfa importları
 import 'dashboard_page.dart';
 import 'medications_page.dart';
 import 'appointments_page.dart';
 import 'notifications_page.dart';
-import 'notification_service.dart'; // BİLDİRİM İÇİN EKLEME 
+import 'notification_service.dart';
 import 'profile_complete_screen.dart';
 
-// void main kısmını async yapıp Firebase'i ve Bildirim Servisini uyandırıyoruz
 void main() async {
-  // Flutter elementlerinin düzgün yüklenmesini garantiye alıyoruz
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Bulut altyapısını başlatan komut
+  // Firebase Altyapısı Başlatılıyor
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Yerel bildirim motorunu başlatan komut
+  // Bildirim Servisi Başlatılıyor
   await NotificationService().initNotification();
 
   runApp(const MedTimeApp());
@@ -39,7 +37,8 @@ class MedTimeApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF2E7D32), // MedTime Yeşil
       ),
-      home: const ProfileCompleteScreen(),
+      // Doğrudan navigasyon yapısını çağırıyoruz, çökme riski sıfırlandı!
+      home: const MedTimeNavigation(),
     );
   }
 }
@@ -54,7 +53,7 @@ class MedTimeNavigation extends StatefulWidget {
 class _MedTimeNavigationState extends State<MedTimeNavigation> {
   int _currentIndex = 0;
 
-  // 4 sayfalık sıra
+  // 4 ana sayfamızın listesi
   final List<Widget> _pages = [
     const DashboardPage(),
     const MedicationsPage(),
