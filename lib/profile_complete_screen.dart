@@ -17,36 +17,40 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
   String _selectedGender = ""; // "Kadın" veya "Erkek" tutacak
   bool _isLoading = false;
 
-  // Verileri Firebase'e kaydeden fonksiyon
-// Profil verilerini geçici kimlikle Firestore'a kaydeden güncel fonksiyon
+  // Profil verilerini cihaz tabanlı gerçek anonim kimlikle kaydeden güvenli fonksiyon
   Future<void> _saveProfileToFirebase() async {
     setState(() => _isLoading = true);
 
     try {
-      // AKTİF OTURUM YOKSA TEST İÇİN GEÇİCİ BİR KİMLİK (UID) TANIMLIYORUZ
-      final currentUser = FirebaseAuth.instance.currentUser;
-      final String testUid = currentUser?.uid ?? "gecici_test_kullanicisi_123";
+      // 🔐 1. EĞER AKTİF OTURUM YOKSA ARKA PLANDA KALICI ANONİM OTURUM AÇIYORUZ
+      // Bu işlem cihaz hafızasına sabit bir UID mühürler, ilaç silme hatasını çözer.
+      if (FirebaseAuth.instance.currentUser == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
 
-      // Firestore'a kullanıcının girdiği ad, yaş ve cinsiyet bilgilerini kaydediyoruz
-      await FirebaseFirestore.instance.collection('users').doc(testUid).set({
-        'uid': testUid,
-        'name': _nameController.text.trim(),   // Ad soyad controller nesneniz
-        'age': _ageController.text.trim(),     // Yaş controller nesneniz
-        'gender': _selectedGender,             // Seçilen cinsiyet değişkeniniz
-        'isMockUser': currentUser == null,     // Gerçek kullanıcı mı test kullanıcısı mı ayrımı için
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final String uniqueUid = currentUser?.uid ?? "acil_durum_id_${DateTime.now().millisecondsSinceEpoch}";
+
+      // 2. Firestore'a kullanıcının girdiği ad, yaş ve cinsiyet bilgilerini benzersiz kimlikle kaydediyoruz
+      await FirebaseFirestore.instance.collection('users').doc(uniqueUid).set({
+        'uid': uniqueUid,
+        'name': _nameController.text.trim(),
+        'age': _ageController.text.trim(),
+        'gender': _selectedGender,
+        'isMockUser': false, // Artık cihaz tabanlı gerçek bir oturum var
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Profil başarıyla kaydedildi! 🎉 (Geçici Kimlik Aktif)'),
-          backgroundColor: Color(0xFF2D6A4F),
+          content: Text('Profil başarıyla kaydedildi! 🎉 Oturumunuz Güvenle Başlatıldı.'),
+          backgroundColor: Color(0xFF2E7D32),
           behavior: SnackBarBehavior.floating,
         ),
       );
 
-      // Kayıt başarılıysa alt menülü ana sayfaya geçiş yapıyoruz
+      // 3. Kayıt başarılıysa alt menülü ana sayfaya kesin geçiş yapıyoruz
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MedTimeNavigation()),
@@ -71,8 +75,8 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF4A90E2); // Soft mavi
-    const backgroundColor = Color(0xFFF8FAFC); // Açık gri/beyaz
+    const primaryColor = Color(0xFF2E7D32); // MedTime Yeşil rengiyle senkronize edildi
+    const backgroundColor = Color(0xFFF8FAFC);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -105,7 +109,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
               ),
               const SizedBox(height: 32),
 
-              // 1. Ad Soyad Giriş Kutusu
+              // Ad Soyad Giriş Kutusu
               const Text("Adınız", style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF334155))),
               const SizedBox(height: 8),
               TextField(
@@ -120,7 +124,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 2. Yaş Giriş Kutusu
+              // Yaş Giriş Kutusu
               const Text("Yaşınız", style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF334155))),
               const SizedBox(height: 8),
               TextField(
@@ -136,7 +140,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 3. Cinsiyet Seçim Alanı 
+              // Cinsiyet Seçim Alanı 
               const Text("Cinsiyetiniz", style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF334155))),
               const SizedBox(height: 8),
               Row(
@@ -186,7 +190,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
               ),
               const SizedBox(height: 40),
 
-              // 4. Kaydet ve Devam Et Butonu
+              // Kaydet ve Devam Et Butonu
               SizedBox(
                 width: double.infinity,
                 height: 56,
