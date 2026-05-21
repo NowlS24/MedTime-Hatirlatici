@@ -174,7 +174,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
       // 🔥 --- n8n WEBHOOK TETİKLEME KODU BAŞLANGICI --- 🔥
       try {
         // TODO: n8n'den kopyaladığınız Test Webhook URL'sini alttaki alana yapıştırın kanka!
-        const String n8nWebhookUrl = 'BURAYA_N8N_DEN_KOPYALADIGINIZ_TEST_URL_GELECEK';
+        const String n8nWebhookUrl = 'https://medtimeilac.app.n8n.cloud/webhook-test/yeni-ilac-tetikleyici';
 
         debugPrint("--> Vital-AI: n8n Webhook'una istek gönderiliyor...");
         final response = await http.post(
