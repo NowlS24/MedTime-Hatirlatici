@@ -1,5 +1,5 @@
 // medications_page.dart
-import 'dart:convert';
+import 'dart:convert'; // 🚀 JSON dönüştürücüleri için şart
 import 'package:flutter/foundation.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -173,11 +173,10 @@ class _MedicationsPageState extends State<MedicationsPage> {
 
       // 🔥 --- n8n WEBHOOK TETİKLEME KODU BAŞLANGICI --- 🔥
       try {
-        // TODO: n8n'den kopyaladığınız Test Webhook URL'sini alttaki alana yapıştırın kanka!
         const String n8nWebhookUrl = 'https://medtimeilac.app.n8n.cloud/webhook-test/yeni-ilac-tetikleyici';
 
         debugPrint("--> Vital-AI: n8n Webhook'una istek gönderiliyor...");
-        final response = await http.post(
+        final response = await http.post( // Get yerine veri göndereceğimiz için Post yaptık kanka!
           Uri.parse(n8nWebhookUrl),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
@@ -195,7 +194,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
           debugPrint("--> Vital-AI: n8n hata döndürdü: ${response.statusCode}");
         }
       } catch (webhookError) {
-        // n8n kapalı olsa bile uygulamanın çökmesini engelliyoruz kanka
         debugPrint("--> Vital-AI: n8n bağlantı hatası (Ama Firebase çalıştı): $webhookError");
       }
       // -------------------------------------------------- 🔥

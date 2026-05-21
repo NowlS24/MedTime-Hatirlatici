@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // 🚀 İŞTE EKSİK OLAN VE HATAYI ÇÖZECEK SATIR BUYDU!
 
 // Sayfa importları
 import 'dashboard_page.dart';
@@ -12,15 +13,16 @@ import 'notification_service.dart';
 import 'profile_complete_screen.dart';
 
 void main() async {
+  // 1. Flutter bağlayıcılarını hazırla
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Firebase Altyapısı Başlatılıyor
+  // 2. KRAKTERİSTİK ADIM: Önce .env dosyasındaki gizli kasayı hafızaya yüklüyoruz
+  await dotenv.load(fileName: ".env");
+  
+  // 3. Firebase Altyapısı Başlatılıyor (Kasa yüklendikten sonra çalışmalı)
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // Bildirim Servisi Başlatılıyor
-  await NotificationService().initNotification();
 
   runApp(const MedTimeApp());
 }
@@ -37,7 +39,6 @@ class MedTimeApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF2E7D32), // MedTime Yeşil
       ),
-      // Doğrudan navigasyon yapısını çağırıyoruz, çökme riski sıfırlandı!
       home: const MedTimeNavigation(),
     );
   }
