@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
-import 'package:firebase_auth/firebase_auth.dart';    
+import 'package:firebase_auth/firebase_auth.dart';     
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; 
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:http/http.dart' as http;
 
 class MedicationsPage extends StatefulWidget {
   const MedicationsPage({super.key});
@@ -132,17 +133,24 @@ class _MedicationsPageState extends State<MedicationsPage> {
     required String ogun
   }) async {
     try {
-      final uid = _getTargetUid();
-      String zamanMetni = "${saat.toString().padLeft(2, '0')}:${dakika.toString().padLeft(2, '0')} ($ogun)";
+      // 🚨 BİTİRME PROJESİ TESTİ İÇİN: Doğrudan n8n'deki test dökümanına zorluyoruz!
+      const String uid = "gecici_test_kullanicisi_123"; 
+      
+      // Saat ve dakikayı n8n / Deneyap kartının kolayca okuyabileceği "UU:DD" formatına getiriyoruz
+      String safSaatMetni = "${saat.toString().padLeft(2, '0')}:${dakika.toString().padLeft(2, '0')}";
+      String zamanMetni = "$safSaatMetni ($ogun)";
       
       final yeniDokuman = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
-          .collection('medications')
+          .collection('medications') 
           .add({
         'name': name,
+        'medicine_name': name, 
         'dosage': dosage,
         'time': zamanMetni,
+        'alarm_time': safSaatMetni, 
+        'status': 'active', 
         'isTaken': false,
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -162,6 +170,35 @@ class _MedicationsPageState extends State<MedicationsPage> {
         'ogun': ogun,
         'timestamp': Timestamp.fromDate(dinamikHedefZamani),
       });
+
+      // 🔥 --- n8n WEBHOOK TETİKLEME KODU BAŞLANGICI --- 🔥
+      try {
+        // TODO: n8n'den kopyaladığınız Test Webhook URL'sini alttaki alana yapıştırın kanka!
+        const String n8nWebhookUrl = 'BURAYA_N8N_DEN_KOPYALADIGINIZ_TEST_URL_GELECEK';
+
+        debugPrint("--> Vital-AI: n8n Webhook'una istek gönderiliyor...");
+        final response = await http.post(
+          Uri.parse(n8nWebhookUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'status': 'ilac_vakti_geldi',
+            'medicine_name': name,
+            'dosage': dosage,
+            'alarm_time': safSaatMetni,
+            'ogun': ogun,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          debugPrint("--> Vital-AI: n8n başarıyla tetiklendi, sistem senkronize!");
+        } else {
+          debugPrint("--> Vital-AI: n8n hata döndürdü: ${response.statusCode}");
+        }
+      } catch (webhookError) {
+        // n8n kapalı olsa bile uygulamanın çökmesini engelliyoruz kanka
+        debugPrint("--> Vital-AI: n8n bağlantı hatası (Ama Firebase çalıştı): $webhookError");
+      }
+      // -------------------------------------------------- 🔥
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
